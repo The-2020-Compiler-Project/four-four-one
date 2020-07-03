@@ -1,0 +1,10 @@
+完成词法分析扫描器类
+包括共有函数：
+int state_change(int state,char ch);自动机返回下一个状态
+void state_token(int state_before,string token);根据上一个状态判断token所属
+int inIT(string str);将str加入IT
+int inCT(string str);将str加入CT
+int inST(string str);将str加入ST
+int inCCT(string str);将str加入CCT
+int inPT(string str);将str加入PT
+int inKT(string str);将str加入KT

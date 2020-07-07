@@ -1,0 +1,268 @@
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+vector <string> SEM;
+string fun_name;
+void initSEM()
+{
+    SEM.resize(0);
+}
+
+void pushSEM(string s)
+{
+    SEM.resize(SEM.size() + 1,s);
+}
+
+bool popSEM()
+{
+    if(SEM.size() == 0)return false;
+    else
+    {
+        SEM.resize(SEM.size() - 1);
+        return true;
+    }
+}
+int tnum=1;
+class fourth
+{
+public:
+    string var;
+    int point;
+    fourth(){var = "#"; point = -1;}
+    fourth(string var,int point):var(var),point(point){}
+    ~fourth(){}
+};
+typedef struct
+{
+    string OT;  //操作符
+    string sec;
+    string thr;
+    fourth four;
+}quater;
+vector <quater> QT;
+quater c;
+string turn_string(int x)
+{
+    string a;
+    stringstream ss;
+    ss<<x;
+    ss>>a;
+    return a;
+}
+void do_add()
+{
+    string a="t";
+    c.OT="+";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+    tnum=tnum+1;
+}
+void do_sub()
+{
+    string a="t";
+    c.OT="-";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    popSEM();
+    popSEM();
+    tnum=tnum+1;
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_mul()
+{
+    string a="t";
+    c.OT="*";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_div()
+{
+    string a="t";
+    c.OT="/";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_less_than()
+{
+    string a="t";
+    c.OT="<";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_more_than()
+{
+    string a="t";
+    c.OT=">";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_less_than_or_equal()
+{
+    string a="t";
+    c.OT="<=";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_more_than_equal()
+{
+    string a="t";
+    c.OT="<=";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    pushSEM(c.four.var);
+}
+void do_equal_equal()
+{
+    string a="t";
+    c.OT="==";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_fun()
+{
+    fun_name=SEM[SEM.size() - 1];
+    c.OT=SEM[SEM.size() - 1];
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr="_";
+    c.four.var="_";
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_ret()
+{
+    c.OT="re";
+    c.sec=SEM[SEM.size() - 1];
+    c.thr="_";
+    c.four.var=fun_name;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_equal()
+{
+    string a="t";
+    c.OT="=";
+    c.sec=SEM[SEM.size() - 1];
+    c.thr="_";
+    c.four.var=a+turn_string(tnum);
+    popSEM();
+    popSEM();
+    tnum=tnum+1;
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+int main()
+{
+   string a1="a";
+   string a2="b";
+   string a3="c";
+   pushSEM(a1);
+   pushSEM(a2);
+   pushSEM(a3);
+   do_mul();
+   do_add();
+   cout<<QT[0].OT<<" "<<QT[1].OT<<" "<<QT[2].OT;
+}
+void show_QT(quater c)
+{
+    cout<<"("<<c.OT<<","<<c.sec<<","<<c.thr<<","<<c.four.var<<")"<<endl;
+}
+int get__action_num(string name)
+{
+    if(name=="do(+)")
+    return 1;
+    if(name=="do(-)")
+    return 2;
+    if(name=="do(*)")
+    return 3;
+    if(name=="do(/)")
+    return 4;
+    if(name=="do(<)")
+    return 5;
+    if(name=="do(>)")
+    return 6;
+    if(name=="do(<=)")
+    return 7;
+    if(name=="do(>=)")
+    return 8;
+    if(name=="do(==)")
+    return 9;
+    if(name=="do(fun)")
+    return 10;
+    if(name=="do(ret)")
+    return 11;
+    if(name=="do(equal)")
+    return 12;
+    if(name=="do(push)")
+    return 13;
+    if(name=="do(while)")
+    return 14;
+    if(name=="do(do)")
+    return 15;
+    if(name=="do(we)")
+    return 16;
+    if(name=="do(if)")
+    return 17;
+    if(name=="do(el)")
+    return 18;
+    if(name=="do(ie)")
+    return 19;
+    if(name=="do(cin)")
+    return 20;
+    if(name=="do(cout)")
+    return 21;
+}

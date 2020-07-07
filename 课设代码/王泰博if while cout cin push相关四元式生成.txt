@@ -1,0 +1,209 @@
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+class fourth
+{
+public:
+    string var;
+    int point;
+    fourth(){var = "#";point = -1;}
+    fourth(string var,int point):var(var),point(point){}
+    ~fourth(){}
+};
+
+typedef struct
+{
+    string OT;  //操作符
+    string sec;
+    string thr;
+    fourth four;
+}quater;
+
+vector <string> SEM;
+void initSEM()
+{
+    SEM.resize(0);
+} 
+
+void pushSEM(string s)
+{
+    SEM.push_back(s);
+}
+
+bool popSEM()
+{
+    if(SEM.size() == 0)return false;
+    else 
+    {
+        SEM.resize(SEM.size() - 1);
+        return true;
+    }
+}
+
+vector <quater> QT;
+void initQT()
+{
+    QT.resize(0);
+}
+
+
+vector <int> if_num;    //统计正在递归使用的if四元式序号值
+vector <int> while_num; //统计正在递归调用的while序号
+vector <int> do_num;    //统计正在递归调用的do序号
+int get_top_if()
+{
+    return if_num[if_num.size() - 1];
+}
+int get_top_while()
+{
+    return while_num[while_num.size() - 1];
+}
+int get_top_do()
+{
+    return do_num[do_num.size() - 1];
+}
+void do_if()
+{
+    quater *a new quater;
+    a->OT = "IF";
+    a->sec = SEM[SEM.size() - 1];
+    a->thr = "_";
+    QT.push_back(*a);
+    if_num.push_back(QT.size() - 1);   //将当前四元式序号记录,方便递归
+    popSEM();
+    a = NULL;
+    delete a;
+        
+}
+
+void do_else()
+{
+    quater *a = new quater;
+    a->OT = "EL";
+    a->sec = "_";
+    a->thr = "_";
+    QT.push_back(*a);
+    QT[get_top_if()].four.point = QT.size();    //指针指向else的下一个四元式
+    a = NULL;
+    delete a;
+}
+
+void do_ifend()
+{
+    quater *a = new quater;
+    a->OT = "IE";
+    a->sec = "_";
+    a->thr = "_";
+    a->four.point = "_";
+    QT.push_back(*a);
+    if(QT[get_top_if()].four.point == '-1')         //没有else,改变if的第四项指针
+        QT[get_top_if()].four.point = QT.size() - 1;
+    else
+        QT[QT[get_top_if()].four.point - 1].four.point = QT.size() - 1;//有else改变else的第四项指针
+    if_num.resize(if_num.size() - 1);       //if结束
+    a = NULL;
+    delete a;
+}
+
+void do_while()
+{
+    quater *a = new quater;
+    a->OT = "WH";
+    a->sec = "_";
+    a->thr = "_";
+    a->four.var = "_";
+    QT.push_back(*a);
+    while_num.resize(while_num.size() + 1,QT.size() - 1);
+    a = NULL;
+    delete a;
+}
+
+void do_do()
+{
+    quater *a = new quater;
+    a->OT = "DO";
+    a->sec = SEM[SEM.size() - 1];
+    a->thr = "_";
+    QT.push_back(*a);
+    do_num.resize(do_num.size() + 1,QT.size() - 1);
+    popSEM();
+    a = NULL;
+    delete a;
+    
+}
+
+void do_whend()
+{
+    quater *a = new quater;
+    a->OT = "WE";
+    a->sec = "_";
+    a->thr = "_";
+    a->four.point = get_top_while() + 1;
+    QT.push_back(*a);
+    QT[get_top_do()].four.point = QT.size();
+    a = NULL;
+    delete a; 
+}
+
+void do_cout()
+{
+    quater *a = new quater;
+    a->OT = "COUT";
+    a->sec = "_";
+    a->thr = "_";
+    a->four.var = xx;
+    QT.push_back(*a);
+    a = NULL;
+    delete a;
+}
+
+void do_cin()
+{
+    quater *a = new quater;
+    a->OT = "CIN";
+    symbol_node *p = searcht[find_searcht(fun_name)].symn;
+    for(; p != NULL;p = p->next)
+        if (p->name == xx)break;
+    a->sec = p->typ->tp;
+    a->thr = "_";
+    a->four.var = xx;
+    QT.push_back(*a);
+    a = NULL;
+    delete a;
+}
+
+void do_push()
+{
+    pushSEM(xx);
+}
+
+void take_action(int a)
+{
+    switch(a)
+    {
+        case 1:do_add();break;
+        case 2:do_sub();break;
+        case 3:do_mul();break;
+        case 4:do_div();break;
+        case 5:do_less_than();break;
+        case 6:do_more_than();break;
+        case 7:do_less_than_or_equal();break;
+        case 8:do_more_than_equal();break;
+        case 9:do_equal_equal();break;
+        case 10:do_fun();break;
+        case 11:do_ret();break;
+        case 12:do_equal();break;
+        case 13:do_push();break;
+        case 14:do_while();break;
+        case 15:do_do();break;
+        case 16:do_whend();break;
+        case 17:do_if();break;
+        case 18:do_else();break;
+        case 19:do_ifend();break;
+        case 20:do_cin();break;
+        case 21:do_cout();break;
+        default:return ;
+    }
+
+}

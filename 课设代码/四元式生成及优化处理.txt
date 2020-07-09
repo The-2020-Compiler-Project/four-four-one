@@ -1,0 +1,907 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+using namespace std;
+
+
+class fourth
+{
+public:
+    string var;
+    int point;
+    fourth(){var = "#";point = -1;}
+    fourth(string var,int point):var(var),point(point){}
+    ~fourth(){}
+};
+
+typedef struct
+{
+    string OT;  //操作符
+    string sec;
+    string thr;
+    fourth four;
+}quater;
+
+vector <string> SEM;
+void initSEM()
+{
+    SEM.resize(0);
+}
+
+void pushSEM(string s)
+{
+    SEM.push_back(s);
+}
+
+bool popSEM()
+{
+    if(SEM.size() == 0)return false;
+    else
+    {
+        SEM.resize(SEM.size() - 1);
+        return true;
+    }
+}
+
+vector <quater> QT;
+void initQT()
+{
+    QT.resize(0);
+}
+
+
+vector <int> if_num;    //统计正在递归使用的if四元式序号值
+vector <int> while_num; //统计正在递归调用的while序号
+vector <int> do_num;    //统计正在递归调用的do序号
+int tnum=1;     //存放当前的t序号
+string xx;  //当前语义动作
+string fun_name;    //存放当前函数名
+int get_top_if()
+{
+    return if_num[if_num.size() - 1];
+}
+int get_top_while()
+{
+    return while_num[while_num.size() - 1];
+}
+int get_top_do()
+{
+    return do_num[do_num.size() - 1];
+}
+void do_if()
+{
+    quater *a = new quater;
+    a->OT = "IF";
+    a->sec = SEM[SEM.size() - 1];
+    a->thr = "_";
+    QT.push_back(*a);
+    if_num.push_back(QT.size() - 1);   //将当前四元式序号记录,方便递归
+    popSEM();
+    a = NULL;
+    delete a;
+
+}
+
+void do_else()
+{
+    quater *a = new quater;
+    a->OT = "EL";
+    a->sec = "_";
+    a->thr = "_";
+    QT.push_back(*a);
+    QT[get_top_if()].four.point = QT.size();    //指针指向else的下一个四元式
+    a = NULL;
+    delete a;
+}
+
+void do_ifend()
+{
+    quater *a = new quater;
+    a->OT = "IE";
+    a->sec = "_";
+    a->thr = "_";
+    a->four.var = "_";
+    QT.push_back(*a);
+    if(QT[get_top_if()].four.point == -1)         //没有else,改变if的第四项指针
+        QT[get_top_if()].four.point = QT.size() - 1;
+    else
+        QT[QT[get_top_if()].four.point - 1].four.point = QT.size() - 1;//有else改变else的第四项指针
+    if_num.resize(if_num.size() - 1);       //if结束
+    a = NULL;
+    delete a;
+}
+
+void do_while()
+{
+    quater *a = new quater;
+    a->OT = "WH";
+    a->sec = "_";
+    a->thr = "_";
+    a->four.var = "_";
+    QT.push_back(*a);
+    while_num.resize(while_num.size() + 1,QT.size() - 1);
+    a = NULL;
+    delete a;
+}
+
+void do_do()
+{
+    quater *a = new quater;
+    a->OT = "DO";
+    a->sec = SEM[SEM.size() - 1];
+    a->thr = "_";
+    QT.push_back(*a);
+    do_num.resize(do_num.size() + 1,QT.size() - 1);
+    popSEM();
+    a = NULL;
+    delete a;
+
+}
+
+void do_whend()
+{
+    quater *a = new quater;
+    a->OT = "WE";
+    a->sec = "_";
+    a->thr = "_";
+    a->four.point = get_top_while() + 1;
+    QT.push_back(*a);
+    QT[get_top_do()].four.point = QT.size();
+    while_num.resize(while_num.size() - 1);
+    do_num.resize(do_num.size() - 1);
+    a = NULL;
+    delete a;
+}
+
+void do_cout()
+{
+    quater *a = new quater;
+    a->OT = "COUT";
+    a->sec = "_";
+    a->thr = "_";
+    a->four.var = xx;
+    QT.push_back(*a);
+    a = NULL;
+    delete a;
+}
+
+/*void do_cin()
+{
+    quater *a = new quater;
+    a->OT = "CIN";
+    symbol_node *p = searcht[find_searcht(fun_name)].symn;
+    for(; p != NULL;p = p->next)
+        if (p->name == xx)break;
+    a->sec = p->typ->tp;
+    a->thr = "_";
+    a->four.var = xx;
+    QT.push_back(*a);
+    a = NULL;
+    delete a;
+}*/
+
+void do_push()
+{
+    pushSEM(xx);
+}
+
+
+
+string turn_string(int x)
+{
+    string a;
+    stringstream ss;
+    ss<<x;
+    ss>>a;
+    return a;
+}
+void do_add()
+{
+    quater c;
+    string a="t";
+    c.OT="+";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+    tnum=tnum+1;
+}
+void do_sub()
+{
+    quater c;
+    string a="t";
+    c.OT="-";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    popSEM();
+    popSEM();
+    tnum=tnum+1;
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_mul()
+{
+    quater c;
+    string a="t";
+    c.OT="*";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_div()
+{
+    quater c;
+    string a="t";
+    c.OT="/";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_less_than()
+{
+    quater c;
+    string a="t";
+    c.OT="<";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_more_than()
+{
+    quater c;
+    string a="t";
+    c.OT=">";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_less_than_or_equal()
+{
+    quater c;
+    string a="t";
+    c.OT="<=";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_more_than_equal()
+{
+    quater c;
+    string a="t";
+    c.OT="<=";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    pushSEM(c.four.var);
+}
+void do_equal_equal()
+{
+    quater c;
+    string a="t";
+    c.OT="==";
+    c.sec=SEM[SEM.size() - 1-1];
+    c.thr=SEM[SEM.size() - 1];
+    c.four.var=a+turn_string(tnum);
+    tnum=tnum+1;
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+    pushSEM(c.four.var);
+}
+void do_fun()
+{
+    quater c;
+    fun_name=xx;
+    c.OT="fun";
+    c.sec=xx;
+    c.thr="_";
+    c.four.var="_";
+    QT.push_back(c);
+}
+void do_ret()
+{
+    quater c;
+    c.OT="ret";
+    c.sec=SEM[SEM.size() - 1];
+    c.thr="_";
+    c.four.var=fun_name;
+    QT.push_back(c);
+    popSEM();
+}
+void do_equal()
+{
+    quater c;
+    string a="t";
+    c.OT="=";
+    c.sec=SEM[SEM.size() - 1];
+    c.thr="_";
+    c.four.var=SEM[SEM.size() - 1-1];
+    popSEM();
+    popSEM();
+    QT.push_back(c);
+}
+void show_QT(quater l)
+{
+    if(l.four.var=="#")
+    cout<<"("<<l.OT<<","<<l.sec<<","<<l.thr<<","<<l.four.point<<")"<<endl;
+    else
+    cout<<"("<<l.OT<<","<<l.sec<<","<<l.thr<<","<<l.four.var<<")"<<endl;
+}
+
+void show_all_QT()
+{
+    for(int i = 0;i < QT.size();i++)
+    {
+        cout<<i<<ends<<ends;
+        show_QT(QT[i]);
+    }
+}
+bool take_action(string name)
+{
+    if(name == "do(+)")do_add();
+    else if(name == "do(-)")do_sub();
+    else if(name == "do(*)")do_mul();
+    else if(name == "do(/)")do_div();
+    else if(name == "do(<)")do_less_than();
+    else if(name == "do(>)")do_more_than();
+    else if(name == "do(<=)")do_less_than_or_equal();
+    else if(name == "do(>=)")do_more_than_equal();
+    else if(name == "do(==)")do_equal_equal();
+    else if(name == "do(fun)")do_fun();
+    else if(name == "do(ret)")do_ret();
+    else if(name == "do(=)")do_equal();
+    else if(name == "do(push)")do_push();
+    else if(name == "do(while)")do_while();
+    else if(name == "do(do)")do_do();
+    else if(name == "do(we)")do_whend();
+    else if(name == "do(if)")do_if();
+    else if(name == "do(el)")do_else();
+    else if(name == "do(ie)")do_ifend();
+//    else if(name=="do(cin)")do_cin();
+    else if(name=="do(cout)")do_cout();
+    else return false;
+    return true;
+}
+
+
+
+//以下为四元式优化
+
+
+
+bool istempvar(string s)
+{
+    return (s[0] == 't');
+}
+bool issomeOT(string s)
+{
+    return (s == "+" || s == "-" || s == "*" || s == "/" || s == "=" || s == "==" || s == "<=" || s == ">=" || s == "<" || s == ">" || s == "&&" || s == "||" || s == "!");
+}
+bool isnum(char s)
+{
+    return (s >= 48 && s <= 57);
+}
+double doOT(string ot,double x,double y)
+{
+    if(ot == "+")return x + y;
+    if(ot == "-")return x - y;
+    if(ot == "*")return x * y;
+    if(ot == "/")return x / y;
+    if(ot == "<")return x < y;
+    if(ot == "<=")return x <= y;
+    if(ot == ">=")return x >= y;
+    if(ot == ">")return x > y;
+    if(ot == "==")return x == y;
+    if(ot == "&&")return x && y;
+    if(ot == "||")return x || y;
+
+}
+
+string turn_string(double x)
+{
+    string a;
+    stringstream ss;
+    ss<<x;
+    ss>>a;
+    return a;
+}
+
+
+double turn_double(string x)
+{
+    double a;
+    string res=x;
+    stringstream ss;
+    ss << res;
+    ss >> a;
+    return a;
+}
+
+
+vector <quater> QT_better;
+
+typedef struct
+{
+    vector <quater> mod;
+}module;
+vector <module> allmodule;  //模块集
+
+
+class DAGnode
+{
+public:
+    string OT;  //运算符
+    string main_sign;   //主标记
+    vector <string> sub_sign;   //子标记
+    int son1,son2;  //左右结点
+    DAGnode(){sub_sign.resize(0);OT = "#";son1 = son2 = -1;}
+    ~DAGnode(){}
+    void add_sub_sign(string s);
+    void delete_sub_sign(string s);
+};
+
+vector <DAGnode> DAGgraph;
+void create_QTbetter();
+void create_DAGnode(quater q);
+void fill_sub_sign_equal(DAGnode d);
+
+void DAGnode::add_sub_sign(string s)        //添加附加标记
+{
+    if(istempvar(main_sign) && !(istempvar(s)))
+    {
+        string ss = main_sign;
+        main_sign = s;
+        s = ss;
+    }
+    sub_sign.push_back(s);
+}
+
+void DAGnode::delete_sub_sign(string s)
+{
+    if(main_sign == s)return;
+    else
+    {
+        for(int i = 0;i < sub_sign.size();i++)
+        {
+            if(sub_sign[i] == s)sub_sign.erase(sub_sign.begin() + i);
+            return;
+        }
+    }
+}
+int find_DAG(string s)
+{
+    for(int i = DAGgraph.size() - 1;i >= 0;i--)
+    {
+        if(DAGgraph[i].main_sign == s)return i;
+        else
+        {
+            for(int j = 0;j < DAGgraph[i].sub_sign.size();j++)
+                if(DAGgraph[i].sub_sign[j] == s)return i;
+        }
+    }
+    return -1;
+}
+
+int find_DAG(string s,int x)        //找到一个异于刚刚操作过的点
+{
+    for(int i = DAGgraph.size() - 1;i >= 0;i--)
+    {
+        if(DAGgraph[i].main_sign == s && i != x)return i;
+        else
+        {
+            for(int j = 0;j < DAGgraph[i].sub_sign.size();j++)
+                if(DAGgraph[i].sub_sign[j] == s && i != x)return i;
+        }
+    }
+    return -1;
+}
+
+int find_DAG(string ot,int son1,int son2)
+{
+    for(int i = DAGgraph.size() - 1;i >= 0;i--)
+    {
+        if(DAGgraph[i].OT == ot && DAGgraph[i].son1 == son1 && DAGgraph[i].son2 == son2)
+            return i;
+    }
+    return -1;
+}
+
+module create_mod(int head,int tail)
+{
+    module m;
+    m.mod.resize(0);
+    for(int i = head;i < tail;i++)
+    {
+        m.mod.push_back(QT[i]);
+    }
+    return m;
+}
+
+
+void divide_module()
+{
+    module m;
+    vector <int> div_state(QT.size(),0);
+    for(int i = 0;i < QT.size();i++)
+        if(QT[i].four.point != -1)
+        {
+            if(i + 1 < QT.size())
+                div_state[i + 1] = 1;
+            if(QT[i].four.point < QT.size())
+                div_state[QT[i].four.point] = 1;
+        }
+    int head = 0;
+    int i;
+    for(i = 0;i < div_state.size();i++)
+    {
+        if(div_state[i]  == 1)
+        {
+            m = create_mod(head,i);
+            allmodule.push_back(m);
+            head = i;
+        }
+    }
+    m = create_mod(head,QT.size());
+    allmodule.push_back(m);
+}
+
+void create_graph_fill_QT_better(module m)
+{
+    DAGgraph.resize(0);
+    int i;
+    for(i = 0;i < m.mod.size();i++)
+    {
+        if(issomeOT(m.mod[i].OT))break;
+        else QT_better.push_back(m.mod[i]);
+    }
+    for(;i < m.mod.size();i++)
+    {
+        if(!issomeOT(m.mod[i].OT))break;
+        else create_DAGnode(m.mod[i]);
+    }
+    create_QTbetter();
+    for(;i < m.mod.size();i++)
+    {
+        QT_better.push_back(m.mod[i]);
+    }
+}
+
+
+void create_DAGnode(quater q)
+{
+    int current;
+    int son1,son2;
+    if(q.OT == "=") //A=B
+    {
+        if(find_DAG(q.sec) == -1)       //如果B没定义过,则新建结点
+        {
+            DAGnode p;
+            p.main_sign = q.sec;
+            p.add_sub_sign(q.four.var);
+            DAGgraph.push_back(p);
+            current = DAGgraph.size() - 1;
+        }
+        else
+        {
+            DAGgraph[find_DAG(q.sec)].add_sub_sign(q.four.var);//否则附加到之前的节点后
+            current = find_DAG(q.sec);
+        }
+        if(find_DAG(q.four.var,current) != -1)      //如果A已定义过,则删掉之前的,主不删
+            DAGgraph[find_DAG(q.four.var,current)].delete_sub_sign(q.four.var);
+
+    }
+    else if(isnum(q.sec[0]) && isnum(q.thr[0]))
+    {
+        double c = doOT(q.OT,turn_double(q.sec),turn_double(q.thr));
+        string s = turn_string(c);
+        if(find_DAG(s) == -1)
+        {
+            DAGnode p;
+            p.main_sign = s;
+            p.add_sub_sign(q.four.var);
+            DAGgraph.push_back(p);
+            current = DAGgraph.size() - 1;
+        }
+        else
+        {
+            DAGgraph[find_DAG(s)].add_sub_sign(q.four.var);
+            current = find_DAG(s);
+        }
+        if(find_DAG(q.four.var,current) != -1)
+            DAGgraph[find_DAG(q.four.var,current)].delete_sub_sign(q.four.var);
+    }
+    else if(q.OT == "!")
+    {
+        if(find_DAG(q.sec) == -1)
+        {
+            DAGnode p1;
+            p1.main_sign = q.sec;
+            DAGgraph.push_back(p1);
+            son1 = DAGgraph.size() - 1;
+        }
+        else son1 = find_DAG(q.sec);
+        son2 = -1;
+        if(find_DAG(q.OT,son1,son2) == -1)
+        {
+            DAGnode p;
+            p.main_sign = q.four.var;
+            p.OT = q.OT;
+            p.son1 = son1;
+            p.son2 = son2;
+            DAGgraph.push_back(p);
+            current = DAGgraph.size() - 1;
+        }
+        else
+        {
+            DAGgraph[find_DAG(q.OT,son1,son2)].add_sub_sign(q.four.var);
+            current = find_DAG(q.OT,son1,son2);
+        }
+        if(find_DAG(q.four.var,current) != -1)
+            DAGgraph[find_DAG(q.four.var,current)].delete_sub_sign(q.four.var);
+    }
+    else
+    {
+        if(find_DAG(q.sec) == -1)
+        {
+            DAGnode p1;
+            p1.main_sign = q.sec;
+            DAGgraph.push_back(p1);
+            son1 = DAGgraph.size() - 1;
+        }
+        else son1 = find_DAG(q.sec);
+        if(find_DAG(q.thr) == -1)
+        {
+            DAGnode p2;
+            p2.main_sign = q.thr;
+            DAGgraph.push_back(p2);
+            son2 = DAGgraph.size() - 1;
+        }
+        else son2 = find_DAG(q.thr);
+        if(find_DAG(q.OT,son1,son2) == -1)
+        {
+            DAGnode p;
+            p.main_sign = q.four.var;
+            p.son1 = son1;
+            p.son2 = son2;
+            p.OT = q.OT;
+            DAGgraph.push_back(p);
+            current = DAGgraph.size() - 1;
+        }
+        else
+        {
+            DAGgraph[find_DAG(q.OT,son1,son2)].add_sub_sign(q.four.var);
+            current = find_DAG(q.OT,son1,son2);
+        }
+        if(find_DAG(q.four.var,current) != -1)
+            DAGgraph[find_DAG(q.four.var,current)].delete_sub_sign(q.four.var);
+    }
+
+}
+
+
+
+void create_QTbetter()
+{
+    quater q;
+    for(int i = 0;i < DAGgraph.size();i++)
+    {
+        quater q;
+        if(DAGgraph[i].OT == "#")
+            fill_sub_sign_equal(DAGgraph[i]);
+        else if(DAGgraph[i].OT == "!")
+        {
+            q.OT = "!";
+            q.sec = DAGgraph[DAGgraph[i].son1].main_sign;
+            q.thr = "_";
+            q.four.var = DAGgraph[i].main_sign;
+            q.four.point = -1;
+            QT_better.push_back(q);
+            fill_sub_sign_equal(DAGgraph[i]);
+        }
+        else
+        {
+            q.OT = DAGgraph[i].OT;
+            q.sec = DAGgraph[DAGgraph[i].son1].main_sign;
+            q.thr = DAGgraph[DAGgraph[i].son2].main_sign;
+            q.four.var = DAGgraph[i].main_sign;
+            q.four.point = -1;
+            QT_better.push_back(q);
+            fill_sub_sign_equal(DAGgraph[i]);
+        }
+    }
+}
+
+
+void show_all_QT_better()
+{
+    cout<<"DAG优化后的四元式组为:"<<endl;
+    for(int i = 0;i < QT_better.size();i++)
+    {
+        cout<<i<<ends<<ends;
+        show_QT(QT_better[i]);
+    }
+}
+
+
+void fill_sub_sign_equal(DAGnode d)
+{
+    quater q;
+    for(int i = 0;i < d.sub_sign.size();i++)
+    {
+        if(!istempvar(d.sub_sign[i]))
+        {
+            q.OT = "=";
+            q.sec = d.main_sign;
+            q.thr = "_";
+            q.four.var = d.sub_sign[i];
+            q.four.point = -1;
+            QT_better.push_back(q);
+        }
+    }
+}
+
+void change_point_QT_better()
+{
+    vector <int> if_t;
+    if_t.resize(0);
+    vector <int> wh_t;
+    wh_t.resize(0);
+    vector <int> do_t;
+    do_t.resize(0);
+    for(int i = 0;i < QT_better.size();i++)
+    {
+        if(QT_better[i].OT == "IF")
+        {
+            if_t.push_back(i);
+            QT_better[i].four.point = -1;
+        }
+        else if(QT_better[i].OT == "EL")
+        {
+            QT_better[if_t[if_t.size() - 1]].four.point = i + 1;
+        }
+        else if(QT_better[i].OT == "IE")
+        {
+            if(QT_better[if_t[if_t.size() - 1]].four.point == -1)
+                QT_better[if_t[if_t.size() - 1]].four.point = i;
+            else
+                QT_better[QT_better[if_t[if_t.size() - 1]].four.point - 1].four.point = i;
+            if_t.resize(if_t.size() - 1);
+        }
+        else if(QT_better[i].OT == "WH")
+        {
+            wh_t.push_back(i);
+        }
+        else if(QT_better[i].OT == "DO")
+        {
+            do_t.push_back(i);
+        }
+        else if(QT_better[i].OT == "WE")
+        {
+            QT_better[i].four.point = wh_t[wh_t.size() - 1] + 1;
+            QT_better[do_t[do_t.size() - 1]].four.point = i + 1;
+            wh_t.resize(wh_t.size() - 1);
+            do_t.resize(do_t.size() - 1);
+        }
+    }
+
+}
+
+void DAG_better()
+{
+    divide_module();
+
+   for(int i = 0;i < allmodule.size();i++)
+   {
+       create_graph_fill_QT_better(allmodule[i]);
+   }
+    change_point_QT_better();
+}
+
+
+
+
+int main()
+{
+    initSEM();
+    initQT();
+   /*pushSEM("a");
+   pushSEM("b");
+    take_action("do(<)");
+    take_action("do(if)");
+    pushSEM("x");
+    pushSEM("a");
+    pushSEM("b");
+    take_action("do(+)");
+    take_action("do(=)");
+    take_action("do(el)");
+    pushSEM("y");
+    pushSEM("a");
+    pushSEM("b");
+    take_action("do(-)");
+    take_action("do(=)");
+    take_action("do(ie)");
+    take_action("do(while)");
+    pushSEM("i");
+    pushSEM("10");
+    take_action("do(<)");
+    take_action("do(do)");
+    pushSEM("z");
+    pushSEM("z");
+    pushSEM("i");
+    pushSEM("i");
+    take_action("do(*)");
+    take_action("do(+)");
+    take_action("do(=)");
+    pushSEM("i");
+    pushSEM("i");
+    pushSEM("1");
+    take_action("do(+)");
+    take_action("do(=)");
+    take_action("do(we)");*/
+    pushSEM("B");
+    pushSEM("5");
+    take_action("do(=)");
+    pushSEM("A");
+    pushSEM("2");
+    pushSEM("3.14");
+    take_action("do(*)");
+    pushSEM("R");
+    pushSEM("r");
+    take_action("do(+)");
+    take_action("do(*)");
+    take_action("do(=)");
+    pushSEM("B");
+    pushSEM("2");
+    pushSEM("3.14");
+    take_action("do(*)");
+    pushSEM("R");
+    pushSEM("r");
+    take_action("do(+)");
+    take_action("do(*)");
+    pushSEM("R");
+    pushSEM("r");
+    take_action("do(-)");
+    take_action("do(/)");
+    take_action("do(=)");
+    show_all_QT();
+    DAG_better();
+    cout<<endl;
+    show_all_QT_better();
+    cout<<endl<<"此时栈中元素的个数为："<<SEM.size();
+
+}
+
+

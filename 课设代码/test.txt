@@ -1,0 +1,41 @@
+int max(int x,int y)
+{
+if(x>y){return x;}
+else {return y;}
+}
+
+int square(int x)
+{
+x = x * x;
+return x;
+}
+
+int main()
+{int a,b,x,A_1,B_1,s;
+double c[8];
+int i;
+a = 3;
+b = 4;
+if(a < 8)
+{x = max(a,b);
+}
+else
+{x = square(c);
+c[7]= 0;
+c[6] = c[5];
+c[3] = c[4] + c[5];
+}
+
+i = 0;
+while(!(i < 8))
+{s = s + i*i;
+i = i + 1;
+}
+
+B_1=5; A_1=2*3.14/(R+r);
+B_1=2*3.14/(R+r)*(R-r);
+cout<<B_1;
+cout<<s;
+return 0;
+
+}
